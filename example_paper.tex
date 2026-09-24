@@ -33,6 +33,8 @@
 \usepackage[capitalize,noabbrev]{cleveref}
 \usepackage{fontawesome5}
 \usepackage{pdfpages}
+% Keep the review banner outside the local group used by \maketitle.
+\fancyhead[L]{Under review as a conference paper at ICLR 2027}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THEOREMS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,6 +374,7 @@ Second, all selected categories must theoretically exhibit the potential for Gen
 \caption{\textbf{Overview of the UniG2U dataset.} The benchmark contains 3,000 samples organized into 7 reasoning categories and 30 fine-grained subtasks, thoughtfully curated from multiple established multimodal reasoning datasets.}
 \label{tab:dataset}
 % 使用 @{} 去除表格左右两侧多余的留白，使表格与页面边距完美对齐
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{} l p{6.5cm} p{3.5cm} c @{}}
 \toprule
 \textbf{Category} & \textbf{Subtasks} & \textbf{Data Sources} & \textbf{\# Samples} \\
@@ -414,7 +417,8 @@ Perception Reasoning
 \midrule
 \textbf{Total} & \textbf{30 fine-grained subtasks} & \textbf{Multiple sources} & \textbf{3,000} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table*}
 
 By structuring the benchmark across seven categories with distinct reasoning characteristics, UniG2U enables fine-grained analysis of the relationship between generation and understanding. As illustrated in Fig.~\ref{fig:task-taxonomy}, the taxonomy spans both generation-friendly categories (e.g., spatial reasoning, puzzles) and more perception-heavy categories, allowing us to probe when intermediate visual generation is helpful, neutral, or harmful. Instead of merely reporting aggregate accuracy, this design allows us to investigate how the effectiveness of generation varies across cognitive regimes, providing deeper insight into the mechanisms of unified multimodal models.
@@ -495,7 +499,7 @@ Our core metric is the \textbf{G2U Gain} ($\Delta$), defined as the accuracy imp
 This relative formulation effectively isolates the net capability shift introduced by the unified architecture and the generation process. We compute the G2U Gain both overall and per subtask to quantitatively diagnose when generation helps, remains neutral, or harms multimodal understanding.
 
 \paragraph{Diagnostic metrics for GtA intermediates: RA and AL.}
-To mechanically understand the effectiveness (or failure) of intermediate images produced during the GtA protocol, we introduce two novel alignment metrics evaluated by GPT-4o on a 1-to-5 scale, using customized rubrics for each task family.
+To mechanically understand the effectiveness (or failure) of intermediate images produced during the GtA protocol, we introduce two novel alignment metrics evaluated by GPT-4o on a 1-to-5 scale, using customized rubrics for each task family. For SenseNova-U1.5-8B-MoT, the supplied RA/AL scores were produced by GPT-5.5 with the same task-specific rubrics; this evaluator difference is marked in Table~\ref{tab:rq4_alignment}.
 
 \textbf{Reasoning-to-Visual Alignment (RA).}
 RA evaluates whether the generated intermediate image correctly materializes the intended reasoning scaffold. It aggregates instruction adherence, visual quality, and task relevance (weighting schema detailed in Fig.~\ref{fig:Rubric weights}). Essentially, RA measures the \emph{fidelity of visual externalization}.
@@ -504,7 +508,7 @@ RA evaluates whether the generated intermediate image correctly materializes the
 AL assesses whether the model's final answer is logically consistent with both the generated intermediate image and the original query. It aggregates visual-answer consistency, question-answer alignment, and reasoning coherence (see Fig.~\ref{fig:Rubric weights}). AL effectively measures the \emph{re-consumption capability} of the generated visual context.
 
 \paragraph{Scoring schema.}
-For both RA and AL, GPT-4o produces a final score on a 5-point scale by aggregating rubric-specific sub-scores. We report the mean RA/AL scores across relevant instances, providing granular breakdowns for each model and subtask to correlate intermediate generation quality with ultimate task accuracy.
+For both RA and AL, the evaluator produces a final score on a 5-point scale by aggregating rubric-specific sub-scores. We report the mean RA/AL scores across relevant instances, providing granular breakdowns for each model and subtask to correlate intermediate generation quality with ultimate task accuracy.
 
 \begin{figure}[t]
     \centering
@@ -517,13 +521,13 @@ For both RA and AL, GPT-4o produces a final score on a 5-point scale by aggregat
 \subsection{Models and Implementation Details}
 \label{sec:models-impl}
 
-To comprehensively study the G2U effect under realistic model ecosystems, we systematically evaluate a massive suite of \textbf{35 distinct models}. These are categorized into three families: \textbf{11} base VLMs, \textbf{21} native unified models, and \textbf{3} agentic models.
+To comprehensively study the G2U effect under realistic model ecosystems, we systematically evaluate a massive suite of \textbf{36 distinct models}. These are categorized into three families: \textbf{11} base VLMs, \textbf{22} native unified models, and \textbf{3} agentic models.
 
 \paragraph{Base VLMs (understanding-only).}
 We benchmark 11 strong vision-language models (VLMs) that perform \emph{pure understanding} without generating intermediate images. This set comprises the exact corresponding base models for all tested unified models, alongside leading VLM models GPT-4o and Ovis2.5. These base VLMs serve as the strict reference points for computing the G2U Gain (\cref{eq:direct_g2u_gain,eq:gta_g2u_gain}).
 
 \paragraph{Native unified models.}
-We benchmark 21 representative open-weight unified models that natively integrate multimodal understanding and image generation within a single model interface (i.e., the model can directly follow the \textbf{Direct} and \textbf{GtA} protocols without external tool wiring). These models serve as our primary subjects for evaluating intrinsic understanding-through-generation. Crucially, as detailed in Table~\ref{tab:unified-models}, the \textbf{Backbone} column explicitly denotes the corresponding Base VLM used for baseline comparisons.
+We benchmark 22 representative open-weight unified models that natively integrate multimodal understanding and image generation within a single model interface (i.e., the model can directly follow the \textbf{Direct} and \textbf{GtA} protocols without external tool wiring). These models serve as our primary subjects for evaluating intrinsic understanding-through-generation. Crucially, as detailed in Table~\ref{tab:unified-models}, the \textbf{Backbone} column denotes the corresponding Base VLM when a paired baseline is available; SenseNova-U1.5 has no paired base result in the supplied evaluation snapshot.
 
 \paragraph{Agentic models }
 Finally, we evaluate 3 agentic models by composing a planner LLM with an external image generation tool. As established in our taxonomy, agentic systems are conceptually regarded as a generalized variant of unified models. Concretely, the planner produces a \texttt{generation\_prompt}, invokes the generation API to obtain an intermediate image, and then answers the query conditioned on this newly generated visual state. Notably, these agentic systems are typically driven by the most powerful, closed-source proprietary models available (e.g., \textbf{GPT-4o + GPT-image} and \textbf{Gemini + Nano Banana Pro}). Evaluating this category serves a critical dual purpose: on one hand, it benchmarks the performance upper-bound (ceiling) of generalized unified models on our tasks; on the other hand, it allows us to investigate how non-end-to-end, purely tool-driven visual externalization performs.
@@ -531,14 +535,14 @@ Finally, we evaluate 3 agentic models by composing a planner LLM with an externa
 When a unified model does not have an official corresponding VLM base model (or its base model is not a vision-language model), we select the closest available VLM baseline in terms of training data and architecture, and use it as the strictly paired base model for comparison.
 
 \paragraph{Models evaluated in this work.}
-We exhaustively evaluate all 21 unified models listed in Table~\ref{tab:unified-models}, including: Emu3 \cite{wang2024emu3}, X-Omni \cite{geng2025xomni}, UniWorld-V1 \cite{lin2025uniworld}, MIO \cite{hu2025mio}, Bagel \cite{deng2025bagel}, OmniGen2 \cite{xiao2024omnigen}, Lumina-DiMOO \cite{xin2025luminadimoo}, Ovis-U1 \cite{wang2025ovisu1}, OneCAT-3B \cite{peng2025onecat}, JavisGPT \cite{liu2025javisgpt}, UAE \cite{yuan2025uae}, TokenFlow-XL \cite{li2024tokenflow}, UniPic2 \cite{peng2025unipic2}, Janus-Pro \cite{chen2025januspro}, Show-o2 \cite{xie2025showo2}, ILLUME+ \cite{zhang2025illume}, STAR-7B \cite{li2025star}, MMaDA \cite{yang2025mmada}, FUDOKI \cite{wang2025fudoki}, AIA \cite{zheng2025aia}, Uni-Video \cite{wei2025univideo}, and MammothModa2 \cite{shen2025mammothmoda2}.
+We evaluate all 22 unified models listed in Table~\ref{tab:unified-models}, including: Emu3 \cite{wang2024emu3}, X-Omni \cite{geng2025xomni}, UniWorld-V1 \cite{lin2025uniworld}, MIO \cite{hu2025mio}, Bagel \cite{deng2025bagel}, OmniGen2 \cite{xiao2024omnigen}, Ovis-U1 \cite{wang2025ovisu1}, OneCAT-3B \cite{peng2025onecat}, JavisGPT \cite{liu2025javisgpt}, UAE \cite{yuan2025uae}, TokenFlow-XL \cite{li2024tokenflow}, UniPic2 \cite{peng2025unipic2}, Janus-Pro \cite{chen2025januspro}, Show-o2 \cite{xie2025showo2}, ILLUME+ \cite{zhang2025illume}, STAR-7B \cite{li2025star}, MMaDA \cite{yang2025mmada}, FUDOKI \cite{wang2025fudoki}, AIA \cite{zheng2025aia}, Uni-Video \cite{wei2025univideo}, MammothModa2 \cite{shen2025mammothmoda2}, and SenseNova-U1.5-8B-MoT \cite{diao2026sensenovau15}.
 
 An overview of these models and their key design choices is provided in Table~\ref{tab:unified-models}, detailing their backbones (Base VLMs), supported modalities, image generation paradigms, training recipes, i2i capability, and whether the unification is end-to-end or decoupled.
 
 % ================= 表格修正 =================
 \begin{table*}[t]
 \centering
-\caption{\textbf{Comparison of Unified Multimodal Models.} \textcolor{cyan}{\faSnowflake}~indicates frozen backbone, \textcolor{orange}{\faUnlock}~indicates unfrozen (trainable) backbone. The \textbf{Backbone} column represents the corresponding Base VLM used for G2U evaluations.}
+\caption{\textbf{Comparison of Unified Multimodal Models.} \textcolor{cyan}{\faSnowflake}~indicates frozen backbone, \textcolor{orange}{\faUnlock}~indicates unfrozen (trainable) backbone. The \textbf{Backbone} column represents the paired Base VLM when one is available. SenseNova-U1.5 has no paired base score; OPD denotes multi-expert on-policy distillation.}
 \label{tab:unified-models}
 \resizebox{\textwidth}{!}{%
 \setlength{\tabcolsep}{4pt}
@@ -553,7 +557,6 @@ UniWorld-V1 & 2025.06 & Qwen-2.5-VL \textcolor{cyan}{\faSnowflake} & image & dif
 MIO & 2025.10 & Yi-6B-Base \textcolor{orange}{\faUnlock} & image, audio & diffusion & UP+ST & yes & decoupled & AR \\
 Bagel & 2025.05 & Qwen-2.5 \textcolor{orange}{\faUnlock} & image, video & Flow & UP+ST & yes & end-to-end & AR \\
 OmniGen2 & 2025.06 & Qwen-2.5-VL \textcolor{orange}{\faUnlock} & image & Flow & UP+ST & yes & decoupled & AR \\
-Lumina-DiMOO & 2025.04 & LLaDA \textcolor{orange}{\faUnlock} & image & Discrete Diffusion & UP+ST+AT & yes & end-to-end & Discrete Diffusion \\
 Ovis-U1 & 2025.06 & Qwen3-1.7B \textcolor{orange}{\faUnlock} & image & diffusion & UP+ST & yes & decoupled & AR \\
 OneCAT-3B & 2025.09 & Qwen-2.5-VL \textcolor{orange}{\faUnlock} & image & AR & UP+ST & yes & end-to-end & AR \\
 JavisGPT & 2025.12 & Qwen2.5-VL \textcolor{orange}{\faUnlock} & video & diffusion & UP+ST & no & decoupled & AR \\
@@ -569,6 +572,7 @@ FUDOKI & 2025.05 & Janus-1.5B \textcolor{orange}{\faUnlock} & image & Discrete F
 AIA & 2025.12 & Janus-Pro \textcolor{orange}{\faUnlock} & image & AR & ST & no (OOD) & end-to-end & AR \\
 Uni-Video & 2026.01 & Qwen2.5-VL-7B \textcolor{cyan}{\faSnowflake} & image, video & diffusion & UP+ST & yes & decoupled & AR \\
 MammothModa2 & 2025.11 & Qwen3-VL-8B \textcolor{orange}{\faUnlock} & image & AR + diffusion & UP+ST+AT & yes & end-to-end & AR \\
+SenseNova-U1.5 & 2026.09 & -- & image & patch reconstruction & MoT + OPD & yes & end-to-end & N/A \\
 \bottomrule
 \end{tabular}%
 }
@@ -757,18 +761,21 @@ ovis2.5 & 44.00 & \textbf{32.50} & \textbf{43.00} & 23.13 & \textbf{89.00} & 27.
 GPT-4o + GPT-image & 32.75 & 27.00 & 30.50 & 32.72 & 60.00 & 27.00 & 40.54 & 35.44 \\
 gemini pro +nano banana pro & \textbf{71.50} & \textbf{85.00} & \textbf{91.00} & \textbf{55.31} & 68.00 & \textbf{38.40} & \textbf{61.12} & \textbf{60.80} \\
 Qwen2.5-7b+Qwen-edit & 33.75 & 17.00 & 31.50 & 27.79 & \textbf{80.00} & 21.60 & 38.56 & 32.96 \\
+\midrule
+SenseNova-U1.5-8B-MoT (Direct) & 42.50 & 44.50 & 32.50 & 22.72 & 85.00 & 29.20 & 38.82 & 36.08~(N/A) \\
+SenseNova-U1.5-8B-MoT (Visual CoT) & 39.50 & 45.50 & 34.00 & 24.83 & 82.00 & 30.00 & 40.42 & 37.13~(N/A) \\
 \bottomrule
 \end{tabular}%
 }
 
 \vspace{2pt}
 
-{\scriptsize \textbf{Note:} * denotes the base model. $\Delta$ is computed as overall minus the base model's overall within each block.}
+{\scriptsize \textbf{Note:} * denotes the base model. $\Delta$ is computed as overall minus the base model's overall within each block. SenseNova's $\Delta$ is N/A because no paired-base scores were supplied; Direct uses \texttt{enable\_thinking=false} and Visual CoT corresponds to the workbook's Visual CoT setting.}
 {\scriptsize \textbf{Bold:} Within each block (same model family), the best score in each category is highlighted in bold; ties are broken by bolding the first occurrence.}
 \end{table*}
 
 
-Table~\ref{tab:main-results} summarizes the performance of all evaluated models across the seven cognitive categories of UniG2U. To rigorously answer RQ1, we group unified models with their strictly paired base VLMs (marked with $^*$). The metric $\Delta$ isolates the absolute G2U Gain (or loss) introduced by the unified architecture.\footnote{\textbf{Evaluation constraints:} To ensure strictly fair comparisons, we exclude GtA results for models inherently lacking image-editing training (OOD for visual modification). Similarly, we omit Direct results for models with frozen backbones, as their performance deviations stem from projection layers rather than parameter-level multimodal coupling. Detailed treatments and analyses are deferred to Appendix~\ref{sec:appendix_ood_ablation} and \ref{Frozen_Backbones}.}
+Table~\ref{tab:main-results} summarizes the performance of all evaluated models across the seven cognitive categories of UniG2U. To rigorously answer RQ1, we group unified models with their strictly paired base VLMs (marked with $^*$). The metric $\Delta$ isolates the absolute G2U Gain (or loss) introduced by the unified architecture. SenseNova-U1.5 is reported as an unpaired model: its absolute scores are included, but its $\Delta$ is not computed because no matched base result was supplied.\footnote{\textbf{Evaluation constraints:} To ensure strictly fair comparisons, we exclude GtA results for models inherently lacking image-editing training (OOD for visual modification). Similarly, we omit Direct results for models with frozen backbones, as their performance deviations stem from projection layers rather than parameter-level multimodal coupling. Detailed treatments and analyses are deferred to Appendix~\ref{sec:appendix_ood_ablation} and \ref{Frozen_Backbones}.}
 
 \paragraph{Overall Trends: The ``Alignment Tax'' of Unification.} 
 ~\\
@@ -854,15 +861,15 @@ ILLUME+ & 0.280 / \textbf{0.290} & 0.069 / \textbf{0.129} & \textbf{0.040} / 0.0
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.45\textwidth]{Figure_1.pdf}
-    \caption{\textbf{GtA vs.\ Direct (Category-level).} Each point represents a (model, category) pair comparing Direct and GtA accuracy.}
-    \label{fig:rq2_scatter}
+    \caption{\textbf{GtA vs.\ Direct (Overall).} Overall accuracy comparison for the selected models supporting both inference protocols.}
+    \label{fig:rq2_overall_bar}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.5\textwidth]{Figure1_1.pdf}
-    \caption{\textbf{GtA vs.\ Direct (Overall).} Overall accuracy comparison for models supporting both inference protocols.}
-    \label{fig:rq2_overall_bar}
+    \caption{\textbf{GtA vs.\ Direct (Category-level).} Each point represents a (model, category) pair comparing Direct and GtA accuracy.}
+    \label{fig:rq2_scatter}
 \end{figure}
 
 To investigate whether explicit intermediate visual generation provides additional benefits over direct unified inference, we evaluate each unified model under both the \textbf{Direct} and \textbf{GtA} protocols with matched inference budgets.
@@ -901,9 +908,12 @@ Show-o2 & 1.08/2.04 & 1.00/1.26 & 1.17/1.61 & 1.06/1.26 & 1.50/3.47 & 1.03/1.63 
 UniPic2 & 1.75/2.60 & 1.69/3.21 & 2.50/3.49 & 1.82/2.30 & 1.33/3.51 & 2.07/2.89 & 2.85/4.16 & 2.31/3.38 \\
 STAR-7B & 2.11/3.60 & 1.54/2.44 & 2.37/3.50 & 1.85/2.43 & 2.77/3.72 & 2.22/3.53 & 2.85/3.75 & 2.39/3.36 \\
 X-Omni & 1.78/2.71 & 1.11/1.29 & 2.21/2.95 & 1.97/2.37 & 1.75/2.45 & 1.60/2.18 & 1.85/2.42 & 1.80/2.35 \\
+SenseNova-U1.5-8B-MoT (GPT-5.5) & 2.06/2.98 & 2.75/3.15 & 2.36/3.00 & 2.25/2.59 & 2.36/4.26 & 2.71/3.13 & 3.30/3.64 & 2.80/3.27 \\
 \bottomrule
 \end{tabular}
 }
+\vspace{2pt}
+{\scriptsize \raggedright \textbf{Evaluator note:} SenseNova-U1.5-8B-MoT RA/AL scores were produced by GPT-5.5; all other models in this table were scored by GPT-4o. SenseNova means are computed over 2,995 valid examples; five policy-refused samples are excluded.\par}
 \end{table*}
 
 At the category level (Fig.~\ref{fig:rq2_scatter}), a majority of points lie below the $y=x$ line, indicating that GtA inference does not consistently outperform Direct inference across task regimes. This trend is further reflected in the aggregate comparison (Fig.~\ref{fig:rq2_overall_bar}), where GtA accuracy is frequently lower than Direct for models supporting both protocols. For several unified models (e.g., OneCAT-3B, Ovis-U1, and MIO), the degradation is substantial. 
@@ -1916,6 +1926,9 @@ ovis2.5 & 99 & 8 & 92 & 21 & 97 & 27 & 34 & 34 & 49 & 25 & 32 & 9.82 & 57 & 31 &
 GPT-4o + GPT-image & 90 & 17 & 89 & 25 & 92 & 30 & 35 & 27 & 32 & 30 & 19 & 15.95 & 47 & 18.5 & 60 \\
 gemini pro & 100 & 38 & 100 & 43 & 100 & 58 & 79 & 73 & 50 & 31 & 62 & 23.31 & 64 & 79 & 68 \\
 qwenedit & 99 & 5 & 98 & 11 & 89 & 25 & 24 & 21 & 45 & 27 & 31 & 7.36 & 42 & 25.5 & 80 \\
+\midrule
+SenseNova-U1.5-8B-MoT (Direct) & 96 & 10 & 96 & 15 & 93 & 12 & 30 & 21 & 39 & 27 & 35 & 10 & 57 & 28 & 85 \\
+SenseNova-U1.5-8B-MoT (Visual CoT) & 95 & 8 & 91 & 26 & 90 & 21 & 33 & 26 & 35 & 27 & 34 & 15 & 51 & 28 & 82 \\
 \bottomrule
 \end{tabular}%
 }
@@ -1997,6 +2010,9 @@ ovis2.5 & 64 & 1 & 27 & 40 & 21 & 22 & 29 & 25 & 23 & 8.43 & 15.07 & 45 & 16.93 
 GPT-4o + GPT-image & 47 & 7 & 23 & 30 & 23 & 23 & 36 & 36 & 20 & 16.87 & 39.84 & 50 & 29.4 & 37 & 24 \\
 gemini pro & 86 & 84 & 35 & 60 & 29 & 28 & 40 & 39 & 70 & 26.51 & 49.29 & 77 & 73.57 & 89 & 93 \\
 qwenedit & 34 & 0 & 19 & 19 & 15 & 18 & 37 & 32 & 23 & 7.23 & 25.57 & 52 & 19.7 & 33 & 30 \\
+\midrule
+SenseNova-U1.5-8B-MoT (Direct) & 55 & 34 & 32 & 34 & 18 & 27 & 35 & 26 & 25 & 10.84 & 0 & 62 & 0 & 27 & 38 \\
+SenseNova-U1.5-8B-MoT (Visual CoT) & 65 & 26 & 30 & 37 & 18 & 23 & 42 & 29 & 28 & 12.05 & 4.33 & 62 & 0 & 36 & 32 \\
 \bottomrule
 \end{tabular}%
 }
@@ -2004,7 +2020,7 @@ qwenedit & 34 & 0 & 19 & 19 & 15 & 18 & 37 & 32 & 23 & 7.23 & 25.57 & 52 & 19.7 
 
 \begin{table*}[!htbp]
 \centering
-\caption{\textbf{Delta results on UniG2U across categories (Sheet 3, Part 1/2).} Baseline models (marked with $*$) are highlighted with gray background, and missing values are denoted by `-`.}
+\caption{\textbf{Delta results on UniG2U across categories (Sheet 3, Part 1/2).} Baseline models (marked with $*$) are highlighted with gray background. A dash denotes either a missing value or an unavailable delta; SenseNova-U1.5 is unpaired and therefore has no delta.}
 \label{tab:sheet3-results-part1}
 \resizebox{\textwidth}{!}{%
 \setlength{\tabcolsep}{3.5pt}
@@ -2078,6 +2094,8 @@ gpt4o & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 GPT-4o + GPT-image & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 gemini pro & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 qwenedit & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
+SenseNova-U1.5-8B-MoT (Direct, unpaired) & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
+SenseNova-U1.5-8B-MoT (Visual CoT, unpaired) & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 \bottomrule
 \end{tabular}%
 }
@@ -2085,7 +2103,7 @@ qwenedit & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 
 \begin{table*}[!htbp]
 \centering
-\caption{\textbf{Delta results on UniG2U across categories (Sheet 3, Part 2/2).} Continuing from Part 1 with the remaining columns.}
+\caption{\textbf{Delta results on UniG2U across categories (Sheet 3, Part 2/2).} Continuing from Part 1 with the remaining columns. A dash denotes either a missing value or an unavailable delta; SenseNova-U1.5 is unpaired and therefore has no delta.}
 \label{tab:sheet3-results-part2}
 \resizebox{\textwidth}{!}{%
 \setlength{\tabcolsep}{3.5pt}
@@ -2159,6 +2177,8 @@ ovis2.5 & - & - & - & - &- & - & - & - & - & - & - & - & - & - & - \\
 GPT-4o + GPT-image & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 gemini pro & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 qwenedit & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
+SenseNova-U1.5-8B-MoT (Direct, unpaired) & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
+SenseNova-U1.5-8B-MoT (Visual CoT, unpaired) & - & - & - & - & - & - & - & - & - & - & - & - & - & - & - \\
 \bottomrule
 \end{tabular}%
 }
@@ -3772,4 +3792,3 @@ Per-sample output:
 
 
 \end{document}
-
