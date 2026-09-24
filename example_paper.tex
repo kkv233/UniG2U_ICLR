@@ -148,13 +148,7 @@ The rapid evolution of unified multimodal models—such as Bagel, OmniGen, Show-
 
 To systematically study this, we introduce \textbf{UniG2U}, which stands as the most comprehensive understanding benchmark to date for unified models—featuring the largest sample volume, the most diverse task categories, the widest model coverage, and the most complete evaluation framework. Unlike previous benchmarks, UniG2U strictly pairs cutting-edge unified models with their purely discriminative base VLMs under matched inference protocols. By doing so, we cleanly isolate the Generation-to-Understanding (G2U) capability, allowing us to accurately assess whether explicit or implicit visual generation facilitates multimodal reasoning.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{radar.pdf}
-    \caption{Model Performance Radar Chart}
-    \label{fig:radar}
-\end{figure}
-We benchmarked over 30 models—encompassing base visual understanding models (VLMs), unified models, and agentic models (which we also define as generalized unified models)—across seven reasoning regimes. Each unified model is evaluated under two distinct inference modes: Direct and Generate-then-Answer (GtA). By rigorously comparing unified models with their base VLMs, we observe a nuanced Generation-to-Understanding (G2U) dynamic, characterized by varying degrees of performance improvements and degradations across different task categories, as vividly illustrated by the relative performance radar chart for a representative subset of the evaluated models(see Fig. \ref{fig:radar}). To deeply investigate this dynamic, we formulate four key research questions (RQs) and design corresponding experiments. Furthermore, we introduce two novel metrics—Reasoning-Alignment (RA) and Answer-Alignment (AL)—to quantitatively measure the quality of intermediate images generated during the GtA stage. Through this comprehensive evaluation, we distill our observations into three core findings:
+We benchmarked over 30 models—encompassing base visual understanding models (VLMs), unified models, and agentic models (which we also define as generalized unified models)—across seven reasoning regimes. Each unified model is evaluated under two distinct inference modes: Direct and Generate-then-Answer (GtA). By rigorously comparing unified models with their base VLMs, we observe a nuanced Generation-to-Understanding (G2U) dynamic, characterized by varying degrees of performance improvements and degradations across different task categories, as illustrated by the radar chart for a representative subset of evaluated models (see Appendix Fig.~\ref{fig:radar}). To deeply investigate this dynamic, we formulate four key research questions (RQs) and design corresponding experiments. Furthermore, we introduce two novel metrics—Reasoning-Alignment (RA) and Answer-Alignment (AL)—to quantitatively measure the quality of intermediate images generated during the GtA stage. Through this comprehensive evaluation, we distill our observations into three core findings:
 
 First, we note an overall performance degradation. Integrating generative capabilities does not yield universal gains; rather, unified models generally underperform their corresponding base VLMs on standard understanding tasks. Furthermore, the GtA paradigm—generating intermediate images prior to answering—typically degrades performance relative to direct inference, often propagating visual errors in structurally constrained domains.
 
@@ -266,13 +260,6 @@ By enforcing strict \textbf{capability comparability} (base-unified pairing) and
 
 We group evaluated UMMs into three categories based on their architectural designs and training paradigms: \textbf{end-to-end unified models} (E2E), \textbf{decoupled unified systems} (Decoupled), and \textbf{agentic unified models} (UM-Ag).
 
-\begin{figure*}[ht]
-  \centering
-  \includegraphics[width=0.8\linewidth]{210.pdf}
-  \caption{Taxonomy of unified multimodal models (UMMs). All models annotated in the figure are benchmarked in this work.}
-  \label{fig:umm-taxonomy}
-\end{figure*}
-
 All categories can be conceptually expressed via a shared factorization:
 \begin{equation}
 G=\mathrm{Gen}(x), \qquad \hat{y}=\mathrm{Ans}(x,G),
@@ -291,7 +278,7 @@ In agentic systems, generation and understanding are performed by \textbf{comple
 
 Conceptually, we regard UM-Ag as a generalized variant of UMMs. However, in our experimental analysis, we explicitly distinguish agentic models from standard unified models (E2E and Decoupled). This separation is necessitated by the fact that most agentic systems consist of distinct, often closed-source proprietary models that rely on external tool-use rather than undergoing any form of multimodal unified training. Consequently, they inherently lack a strictly matched base VLM, rendering them incompatible with the rigorous base-unified comparative framework defined in Section \ref{sec:unified_model_def} for calculating exact G2U gains.
 
-Fig.~\ref{fig:umm-taxonomy} summarizes this taxonomy and highlights how the three classes differ in their degree of unification—ranging from jointly trained parameters (E2E) to stitched modules (Decoupled), and finally to tool-invoked separate models (UM-Ag).
+Appendix Fig.~\ref{fig:umm-taxonomy} summarizes this taxonomy and highlights how the three classes differ in their degree of unification—ranging from jointly trained parameters (E2E) to stitched modules (Decoupled), and finally to tool-invoked separate models (UM-Ag).
 
 \subsection{Direct vs.\ Generate-then-Answer (GtA) Inference}
 \label{sec:direct_vs_gta}
@@ -334,9 +321,9 @@ While externalizing visual transformations can be beneficial, the GtA protocol c
 \section{The Setup of UniG2U}
 \subsection{Dataset Construction and Task Taxonomy}
 
-\begin{figure*}[tbp]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=\linewidth]{task.pdf}
+  \includegraphics[width=0.88\linewidth,height=0.40\textheight,keepaspectratio]{task.pdf}
   \caption{Task taxonomy overview of UniG2U.}
   \label{fig:task-taxonomy}
 \end{figure*}
@@ -427,17 +414,11 @@ By structuring the benchmark across seven categories with distinct reasoning cha
 \label{sec:task-selection}
 
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.75\linewidth]{taskbing.pdf}
-  \caption{Task selection and coverage in UniG2U.}
-  \label{fig:task-selection-coverage}
-\end{figure}
 \label{sec:task-format}
 
 UniG2U is constructed around a single guiding hypothesis: there exists a family of multimodal understanding tasks for which intermediate visual generation can serve as an effective reasoning aid. Such tasks are common in practice, including (i) \textbf{spatial reasoning} where models benefit from externalizing transformations or layouts, (ii) \textbf{chart \& table reasoning} where re-expression or simplification of plots can reduce cognitive load, (iii) \textbf{puzzles and games} where intermediate states can be visualized to support state tracking, and (iv) \textbf{Physics/geometry} problems where auxiliary constructions and diagram manipulation often enable correct solutions.
 
-To ensure both \emph{comprehensive coverage} and \emph{strong relevance} to the G2U objective, we curate \textbf{3,000} instances across \textbf{7} high-level categories and \textbf{30} subtasks (Table~\ref{tab:dataset}). As shown in Fig.~\ref{fig:task-selection-coverage}, our candidate pool is collected from diverse public sources (e.g., IllusionBench, MMSI-Bench, Visual Puzzles, Geometry3K, AuxSolidMath, Uni-MMMU, ChartQA, RealUnify, BabyVision, PhyX, and VSP-style benchmarks), from which we further \emph{select and filter} instances that best reflect settings where intermediate generation is likely to assist understanding.
+To ensure both \emph{comprehensive coverage} and \emph{strong relevance} to the G2U objective, we curate \textbf{3,000} instances across \textbf{7} high-level categories and \textbf{30} subtasks (Table~\ref{tab:dataset}). As shown in Appendix Fig.~\ref{fig:task-selection-coverage}, our candidate pool is collected from diverse public sources (e.g., IllusionBench, MMSI-Bench, Visual Puzzles, Geometry3K, AuxSolidMath, Uni-MMMU, ChartQA, RealUnify, BabyVision, PhyX, and VSP-style benchmarks), from which we further \emph{select and filter} instances that best reflect settings where intermediate generation is likely to assist understanding.
 
 In particular, the benchmark includes 200 samples each for Real-world Applications, Geometry Reasoning, and Physics Reasoning; 537 samples for Puzzles and Games; 100 samples for Chart \& Table Reasoning; 500 samples for Spatial Intelligence; and 1,263 samples for Perception Reasoning. This distribution allows us to analyze generation benefits across cognitive regimes ranging from generation-friendly spatial manipulation to primarily perceptual recognition.
 
@@ -461,8 +442,8 @@ Importantly, UniG2U does \emph{not} force a single canonical intermediate image 
 Our evaluation protocol is strictly designed to ensure \emph{fair comparison} across a diverse suite of models and to rigorously isolate the \emph{causal contribution of intermediate generation} (i.e., the G2U effect).
 
 \begin{figure*}[t]
-  \centering
-  \includegraphics[width=\linewidth]{stepwise.pdf}
+    \centering
+    \includegraphics[width=0.86\linewidth,height=0.39\textheight,keepaspectratio]{stepwise.pdf}
   \caption{Overview of our two evaluation prompt formats: Direct and Generate-then-Answer (GtA).}
   \label{fig:stepwise-protocol}
 \end{figure*}
@@ -502,21 +483,13 @@ This relative formulation effectively isolates the net capability shift introduc
 To mechanically understand the effectiveness (or failure) of intermediate images produced during the GtA protocol, we introduce two novel alignment metrics evaluated by GPT-4o on a 1-to-5 scale, using customized rubrics for each task family. For SenseNova-U1.5-8B-MoT, the supplied RA/AL scores were produced by GPT-5.5 with the same task-specific rubrics; this evaluator difference is marked in Table~\ref{tab:rq4_alignment}.
 
 \textbf{Reasoning-to-Visual Alignment (RA).}
-RA evaluates whether the generated intermediate image correctly materializes the intended reasoning scaffold. It aggregates instruction adherence, visual quality, and task relevance (weighting schema detailed in Fig.~\ref{fig:Rubric weights}). Essentially, RA measures the \emph{fidelity of visual externalization}.
+RA evaluates whether the generated intermediate image correctly materializes the intended reasoning scaffold. It aggregates instruction adherence, visual quality, and task relevance (weighting schema detailed in Appendix Fig.~\ref{fig:Rubric weights}). Essentially, RA measures the \emph{fidelity of visual externalization}.
 
 \textbf{Answer-to-Visual Alignment (AL).}
-AL assesses whether the model's final answer is logically consistent with both the generated intermediate image and the original query. It aggregates visual-answer consistency, question-answer alignment, and reasoning coherence (see Fig.~\ref{fig:Rubric weights}). AL effectively measures the \emph{re-consumption capability} of the generated visual context.
+AL assesses whether the model's final answer is logically consistent with both the generated intermediate image and the original query. It aggregates visual-answer consistency, question-answer alignment, and reasoning coherence (see Appendix Fig.~\ref{fig:Rubric weights}). AL effectively measures the \emph{re-consumption capability} of the generated visual context.
 
 \paragraph{Scoring schema.}
 For both RA and AL, the evaluator produces a final score on a 5-point scale by aggregating rubric-specific sub-scores. We report the mean RA/AL scores across relevant instances, providing granular breakdowns for each model and subtask to correlate intermediate generation quality with ultimate task accuracy.
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\linewidth]{academic_apple_chart_cropped.pdf}
-    \caption{Rubric weights for GtA intermediate evaluation. RA measures the adherence and fidelity of the generated intermediate image w.r.t.\ the generation prompt, while AL measures the logical consistency between the final answer, the generated image, and the original question.}
-    \label{fig:Rubric weights}
-\end{figure}
-
 
 \subsection{Models and Implementation Details}
 \label{sec:models-impl}
@@ -677,12 +650,6 @@ When explicitly prompted to generate intermediate auxiliary images under the GtA
 % \hline
 % \end{tabular}
 \section{Results Analysis}
-\begin{figure*}[ht]
-    \centering
-    \includegraphics[width=0.95\linewidth]{case-figure.pdf}
-    \caption{Representative case studies from UniG2U-Bench}
-    \label{fig:placeholder}
-\end{figure*}
 \subsection{Main Results (RQ1)}
 \label{sec:main-results}
 
@@ -858,19 +825,22 @@ ILLUME+ & 0.280 / \textbf{0.290} & 0.069 / \textbf{0.129} & \textbf{0.040} / 0.0
 \end{tabular}
 \end{table}
 
-\begin{figure}[ht]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=0.45\textwidth]{Figure_1.pdf}
-    \caption{\textbf{GtA vs.\ Direct (Overall).} Overall accuracy comparison for the selected models supporting both inference protocols.}
-    \label{fig:rq2_overall_bar}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{Figure1_1.pdf}
-    \caption{\textbf{GtA vs.\ Direct (Category-level).} Each point represents a (model, category) pair comparing Direct and GtA accuracy.}
-    \label{fig:rq2_scatter}
-\end{figure}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Figure_1.pdf}
+        \caption{Overall accuracy for models supporting both protocols.}
+        \label{fig:rq2_overall_bar}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Figure1_1.pdf}
+        \caption{Each point is a (model, category) pair.}
+        \label{fig:rq2_scatter}
+    \end{subfigure}
+    \caption{\textbf{GtA vs.\ Direct performance.} The left panel compares overall accuracy; the right panel shows category-level accuracy.}
+\end{figure*}
 
 To investigate whether explicit intermediate visual generation provides additional benefits over direct unified inference, we evaluate each unified model under both the \textbf{Direct} and \textbf{GtA} protocols with matched inference budgets.
 
@@ -1016,6 +986,46 @@ Looking forward, advancing G2U requires stronger integration mechanisms between 
 \appendix
 \onecolumn
 \small 
+
+\section{Additional Figures}
+\label{sec:additional-figures}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{radar.pdf}
+    \caption{Model Performance Radar Chart.}
+    \label{fig:radar}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{210.pdf}
+    \caption{Taxonomy of unified multimodal models (UMMs). All models annotated in the figure are benchmarked in this work.}
+    \label{fig:umm-taxonomy}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.70\linewidth]{taskbing.pdf}
+    \caption{Task selection and coverage in UniG2U.}
+    \label{fig:task-selection-coverage}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.90\linewidth]{academic_apple_chart_cropped.pdf}
+    \caption{Rubric weights for GtA intermediate evaluation. RA measures the adherence and fidelity of the generated intermediate image w.r.t.\ the generation prompt, while AL measures the logical consistency between the final answer, the generated image, and the original question.}
+    \label{fig:Rubric weights}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.84\linewidth]{case-figure.pdf}
+    \caption{Representative case studies from UniG2U-Bench.}
+    \label{fig:placeholder}
+\end{figure}
+
+\clearpage
 
 \section{Performance Analysis of Unified Models with Frozen Backbones (Non-CoT Version)}
 \label{Frozen_Backbones}
